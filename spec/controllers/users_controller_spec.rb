@@ -102,6 +102,11 @@ describe UsersController do
         end.should change(User, :count).by(1)
       end
 
+      it "should sign the user in" do
+        post :create, :user => @attr
+        controller.should be_signed_in
+      end
+
       it "should redirect to the show user page" do
         post :create, :user => @attr
         response.should redirect_to(user_path(assigns(:user)))
@@ -111,6 +116,7 @@ describe UsersController do
         post :create, :user => @attr
         flash[:success].should =~ /welcome/i
       end
+
     end
   end
 end
