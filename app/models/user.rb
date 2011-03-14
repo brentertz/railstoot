@@ -1,4 +1,19 @@
 # == Schema Information
+# Schema version: 20110313172129
+#
+# Table name: users
+#
+#  id                 :integer         not null, primary key
+#  name               :string(255)
+#  email              :string(255)
+#  created_at         :datetime
+#  updated_at         :datetime
+#  encrypted_password :string(255)
+#  salt               :string(255)
+#  admin              :boolean
+#
+
+# == Schema Information
 # Schema version: 20110307002935
 #
 # Table name: users
@@ -12,6 +27,7 @@
 require 'digest'
 
 class User < ActiveRecord::Base
+  has_many :microposts, :dependent => :destroy
   attr_accessor :password
   attr_accessible :name, :email, :password, :password_confirmation
 
@@ -27,6 +43,11 @@ class User < ActiveRecord::Base
                        :length => {:within => 6..40}
 
   before_save :encrypt_password
+
+  def feed
+    # This is preliminary. See Chapter 12 for the full implementation.
+    Micropost.where("user_id = ?", id)
+  end
 
   # Return true if the user's password matches the submitted password.
   def has_password?(submitted_password)

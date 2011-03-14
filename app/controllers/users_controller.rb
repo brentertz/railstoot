@@ -16,6 +16,7 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(:page => params[:page])
     @title = @user.name
   end
 
@@ -23,7 +24,8 @@ class UsersController < ApplicationController
     @user = User.new(params[:user])
     if @user.save
       sign_in @user
-      redirect_to @user, :flash => {:success => "Welcome!"}
+      flash[:success] = "Welcome!"
+      redirect_to @user
     else
       @title = "Sign up"
       @user.password = ""
@@ -37,7 +39,8 @@ class UsersController < ApplicationController
 
   def update
     if @user.update_attributes(params[:user])
-      redirect_to @user, :flash => {:success => "Profile updated."}
+      flash[:success] = "Profile updated."
+      redirect_to @user
     else
       @title = "Edit user"
       render 'edit'
@@ -54,10 +57,6 @@ class UsersController < ApplicationController
   end
 
   private
-    def authenticate
-      deny_access unless signed_in?
-    end
-
     def correct_user
       @user = User.find(params[:id])
       redirect_to(root_path) unless current_user?(@user)
