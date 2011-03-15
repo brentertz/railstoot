@@ -156,13 +156,37 @@ describe UsersController do
       response.should have_selector("span.content", :content => mp1.content)
       response.should have_selector("span.content", :content => mp2.content)
     end
+
+    it "should paginate microposts" do
+      50.times do
+        Factory(:micropost, :user => @user, :content => "Foo bar")
+      end
+      get :show, :id => @user
+      response.should have_selector("div.pagination")
+      response.should have_selector("span.disabled", :content => "Previous")
+      response.should have_selector("a", :href => "/users/#{@user.id}?page=2", :content => "2")
+      response.should have_selector("a", :href => "/users/#{@user.id}?page=2", :content => "Next")
+    end
+
+    describe "as another user" do
+      before(:each) do
+        wrong_user = Factory(:user, :email => "user@example.net")
+        test_sign_in(wrong_user)
+      end
+
+      it "should not show micropost delete links" do
+        mp1 = Factory(:micropost, :user => @user, :content => "Foo bar")
+        get :show, :id => @user
+        response.should_not have_selector("a", :href => micropost_path(mp1), :content => "delete")
+      end
+    end
   end
 
   describe "POST 'create'" do
     describe "as a non-signed-in user" do
       describe "failure" do
         before(:each) do
-          @attr = {:name => "", :email => "", :password => "", :password_confirmatio => ""}
+          @attr = {:name => "", :email => "", :password => "", :password_confirmation => ""}
         end
 
         it "should not create a user" do
